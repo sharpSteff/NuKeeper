@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NuKeeper.Abstractions.Logging;
 using NuKeeper.Abstractions.NuGet;
@@ -49,16 +50,24 @@ namespace NuKeeper.Update
 
             _logger.Detailed($"Updating '{updateSet.SelectedId}' to {updateSet.SelectedVersion} in {sortedUpdates.Count} projects");
 
+
+
+            var updateTasks = new List<Task>();
             foreach (var current in sortedUpdates)
             {
-                var updateCommands = GetUpdateCommands(current.Path.PackageReferenceType);
-                foreach (var updateCommand in updateCommands)
+                updateTasks.Add(Task.Factory.StartNew(async () =>
                 {
-                    await updateCommand.Invoke(current,
-                        updateSet.SelectedVersion, updateSet.Selected.Source,
-                        sources);
-                }
+                    var updateCommands = GetUpdateCommands(current.Path.PackageReferenceType);
+                    foreach (var updateCommand in updateCommands)
+                    {
+                        await updateCommand.Invoke(current,
+                            updateSet.SelectedVersion, updateSet.Selected.Source,
+                            sources);
+                    }
+                }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default));
             }
+
+            await Task.WhenAll(updateTasks);
         }
 
         private IReadOnlyCollection<PackageInProject> Sort(IReadOnlyCollection<PackageInProject> packages)
@@ -83,8 +92,8 @@ namespace NuKeeper.Update
                 case PackageReferenceType.ProjectFileOldStyle:
                     return new IPackageCommand[]
                     {
-                        _updateProjectImportsCommand,
-                        _fileRestoreCommand,
+                        //_updateProjectImportsCommand,
+                        //_fileRestoreCommand,
                         _dotNetUpdatePackageCommand
                     };
 
