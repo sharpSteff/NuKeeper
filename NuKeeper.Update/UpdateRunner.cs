@@ -52,20 +52,19 @@ namespace NuKeeper.Update
 
 
 
-            var updateTasks = new List<Task>();
-            foreach (var current in sortedUpdates)
-            {
-                updateTasks.Add(Task.Factory.StartNew(async () =>
+            var updateTasks = sortedUpdates.ToList().Select(current =>
                 {
-                    var updateCommands = GetUpdateCommands(current.Path.PackageReferenceType);
-                    foreach (var updateCommand in updateCommands)
+                    return Task.Factory.StartNew(async () =>
                     {
-                        await updateCommand.Invoke(current,
-                            updateSet.SelectedVersion, updateSet.Selected.Source,
-                            sources);
-                    }
-                }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default));
-            }
+                        var updateCommands = GetUpdateCommands(current.Path.PackageReferenceType);
+                        foreach (var updateCommand in updateCommands)
+                        {
+                            await updateCommand.Invoke(current,
+                                updateSet.SelectedVersion, updateSet.Selected.Source,
+                                sources);
+                        }
+                    }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+                });
 
             await Task.WhenAll(updateTasks);
         }
