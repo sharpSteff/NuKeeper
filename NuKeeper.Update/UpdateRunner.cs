@@ -91,7 +91,7 @@ namespace NuKeeper.Update
                 case PackageReferenceType.ProjectFileOldStyle:
                     return new IPackageCommand[]
                     {
-                        //_updateProjectImportsCommand,
+                        _updateProjectImportsCommand,
                         //_fileRestoreCommand,
                         _dotNetUpdatePackageCommand
                     };
