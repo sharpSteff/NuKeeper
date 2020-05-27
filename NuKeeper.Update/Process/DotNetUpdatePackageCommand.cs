@@ -44,11 +44,11 @@ namespace NuKeeper.Update.Process
            // var restoreCommand = $"restore {projectFileName} {sources}";
            // await _externalProcess.Run(projectPath, "dotnet", restoreCommand, true);
 
-            //if (currentPackage.Path.PackageReferenceType == PackageReferenceType.ProjectFileOldStyle)
-            //{
-            //    var removeCommand = $"remove {projectFileName} package {currentPackage.Id}";
-            //    await _externalProcess.Run(projectPath, "dotnet", removeCommand, true);
-            //}
+            if (currentPackage.Path.PackageReferenceType == PackageReferenceType.ProjectFileOldStyle)
+            {
+                var removeCommand = $"remove {projectFileName} package {currentPackage.Id}";
+                await _externalProcess.Run(projectPath, "dotnet", removeCommand, true);
+            }
 
             var addCommand = $"add {projectFileName} package {currentPackage.Id} -v {newVersion} -s {sourceUrl}";
             await _externalProcess.Run(projectPath, "dotnet", addCommand, true);
